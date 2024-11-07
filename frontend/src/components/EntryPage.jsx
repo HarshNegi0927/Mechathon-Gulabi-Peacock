@@ -31,12 +31,12 @@ const TestimonialCard = ({ name, role, quote, image }) => {
 
 const PhotoGallery = () => {
   const images = [
-    '/placeholder.svg?height=300&width=400',
-    '/placeholder.svg?height=300&width=400',
-    '/placeholder.svg?height=300&width=400',
-    '/placeholder.svg?height=300&width=400',
-    '/placeholder.svg?height=300&width=400',
-    '/placeholder.svg?height=300&width=400',
+    '/airplane.jpg',
+    '/office.webp',
+    '/college.webp',
+    '/astronaut.webp?height=300&width=400',
+    '/banking.jpg?height=300&width=400',
+    '/sports.jpg?height=300&width=400',
   ]
 
   return (
@@ -62,9 +62,9 @@ const PhotoGallery = () => {
 
 const PricingCard = ({ title, price, features, isPopular }) => {
   return (
-    <div className={`bg-white p-6 rounded-lg shadow-md ${isPopular ? 'border-2 border-blue-500' : ''}`}>
+    <div className={`bg-white p-6 rounded-lg shadow-md ${isPopular ? 'border-2 border-orange-500' : ''}`}>
       {isPopular && (
-        <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-sm font-semibold mb-4 inline-block">
+        <span className="bg-orange-500 text-white px-2 py-1 rounded-full text-sm font-semibold mb-4 inline-block">
           Most Popular
         </span>
       )}
@@ -78,14 +78,14 @@ const PricingCard = ({ title, price, features, isPopular }) => {
           </li>
         ))}
       </ul>
-      <button className={`w-full py-2 rounded-full font-semibold ${isPopular ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
+      <button className={`w-full py-2 rounded-full font-semibold ${isPopular ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
         Choose Plan
       </button>
     </div>
   )
 }
 
-const LandingPage = () => {
+export default function Component() {
   const [scrollY, setScrollY] = useState(0)
 
   useEffect(() => {
@@ -102,15 +102,15 @@ const LandingPage = () => {
       <header className="sticky top-0 z-50 w-full border-b bg-white">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <PieChart className="h-6 w-6 text-blue-600" />
-            <span className="text-xl font-bold text-blue-600">ExpenseTracker</span>
+            <PieChart className="h-6 w-6 text-orange-600" />
+            <span className="text-xl font-bold text-orange-600">TakeTrack</span>
           </div>
           <nav className="hidden md:flex space-x-6 text-sm font-medium">
-            <a href="#features" className="text-gray-600 hover:text-blue-600 transition-colors">Features</a>
-            <a href="#testimonials" className="text-gray-600 hover:text-blue-600 transition-colors">Testimonials</a>
-            <a href="#pricing" className="text-gray-600 hover:text-blue-600 transition-colors">Pricing</a>
+            <a href="#features" className="text-gray-600 hover:text-orange-600 transition-colors">Features</a>
+            <a href="#testimonials" className="text-gray-600 hover:text-orange-600 transition-colors">Testimonials</a>
+            <a href="#pricing" className="text-gray-600 hover:text-orange-600 transition-colors">Pricing</a>
           </nav>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors">
+          <button className="bg-orange-600 text-white px-4 py-2 rounded-full hover:bg-orange-700 transition-colors">
             Sign Up
           </button>
         </div>
@@ -127,7 +127,7 @@ const LandingPage = () => {
             >
               <h1 className="text-4xl font-bold mb-4">Master Your Finances with Ease</h1>
               <p className="text-xl mb-8">Track, analyze, and optimize your expenses. Take control of your financial future today.</p>
-              <button className="bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 transition-colors inline-flex items-center">
+              <button className="bg-orange-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-orange-700 transition-colors inline-flex items-center">
                 Get Started Free
                 <ChevronRight className="ml-2 h-4 w-4" />
               </button>
@@ -138,32 +138,32 @@ const LandingPage = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <img src="/placeholder.svg?height=400&width=600" alt="Expense Tracking Dashboard" className="rounded-lg shadow-2xl" />
+              <img src="/dashboard.jpeg" alt="Expense Tracking Dashboard" className="rounded-lg shadow-2xl h-[25rem]" />
             </motion.div>
           </div>
         </section>
 
         <section id="features" className="py-20 bg-gray-100">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">Why Choose ExpenseTracker?</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">Why Choose TakeTrack?</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <FeatureCard 
-                icon={<CreditCard className="w-12 h-12 text-blue-500" />}
+                icon={<CreditCard className="w-12 h-12 text-orange-500" />}
                 title="Easy Expense Logging"
                 description="Quickly log your expenses on-the-go with our intuitive interface."
               />
               <FeatureCard 
-                icon={<PieChart className="w-12 h-12 text-blue-500" />}
+                icon={<PieChart className="w-12 h-12 text-orange-500" />}
                 title="Insightful Reports"
                 description="Gain valuable insights with our detailed financial reports and analytics."
               />
               <FeatureCard 
-                icon={<TrendingUp className="w-12 h-12 text-blue-500" />}
+                icon={<TrendingUp className="w-12 h-12 text-orange-500" />}
                 title="Budget Planning"
                 description="Set and track budgets to help you reach your financial goals."
               />
               <FeatureCard 
-                icon={<Shield className="w-12 h-12 text-blue-500" />}
+                icon={<Shield className="w-12 h-12 text-orange-500" />}
                 title="Secure & Private"
                 description="Your financial data is encrypted and never shared with third parties."
               />
@@ -176,22 +176,22 @@ const LandingPage = () => {
             <h2 className="text-3xl font-bold text-center mb-12">What Our Users Say</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <TestimonialCard 
-                name="John Doe"
+                name="Harsh Negi"
                 role="Small Business Owner"
-                quote="ExpenseTracker has revolutionized how I manage my business finances. It's intuitive and powerful!"
-                image="/placeholder.svg?height=100&width=100"
+                quote="TakeTrack has revolutionized how I manage my business finances. It's intuitive and powerful!"
+                image="/harsh.jpeg?height=100&width=100"
               />
               <TestimonialCard 
-                name="Jane Smith"
+                name="Krishna Agrawal"
                 role="Freelance Designer"
-                quote="As a freelancer, keeping track of expenses was a nightmare. ExpenseTracker made it a breeze!"
-                image="/placeholder.svg?height=100&width=100"
+                quote="As a freelancer, keeping track of expenses was a nightmare. TakeTrack made it a breeze!"
+                image="/krishna.jpeg?height=100&width=100"
               />
               <TestimonialCard 
-                name="Mike Johnson"
+                name="Abhay Goyal"
                 role="Student"
-                quote="ExpenseTracker helped me stick to my budget and save for my goals. It's a game-changer for students!"
-                image="/placeholder.svg?height=100&width=100"
+                quote="TakeTrack helped me stick to my budget and save for my goals. It's a game-changer for students!"
+                image="/abhay.jpeg?height=100&width=100"
               />
             </div>
           </div>
@@ -199,7 +199,7 @@ const LandingPage = () => {
 
         <section className="py-20 bg-gray-100">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">ExpenseTracker in Action</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">TakeTrack in Action</h2>
             <PhotoGallery />
           </div>
         </section>
@@ -247,7 +247,7 @@ const LandingPage = () => {
         <section className="py-20 bg-gray-100">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-8">Ready to Take Control of Your Finances?</h2>
-            <button className="bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 transition-colors inline-flex items-center">
+            <button className="bg-orange-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-orange-700 transition-colors inline-flex items-center">
               Start Your Free Trial
               <ChevronRight className="ml-2 h-4 w-4" />
             </button>
@@ -259,20 +259,18 @@ const LandingPage = () => {
         <div className="container mx-auto px-4 flex flex-wrap justify-between items-center">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">
             <PieChart className="h-6 w-6" />
-            <span className="text-xl font-semibold">ExpenseTracker</span>
+            <span className="text-xl font-semibold">TakeTrack</span>
           </div>
           <nav className="flex flex-wrap gap-4">
-            <a href="#" className="hover:text-blue-400 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-blue-400 transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-blue-400 transition-colors">Contact Us</a>
+            <a href="#" className="hover:text-orange-400 transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-orange-400 transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-orange-400 transition-colors">Contact Us</a>
           </nav>
           <div className="mt-4 md:mt-0">
-            <p>&copy; 2024 ExpenseTracker. All rights reserved.</p>
+            <p>&copy; 2024 TakeTrack. All rights reserved.</p>
           </div>
         </div>
       </footer>
     </div>
   )
 }
-
-export default LandingPage

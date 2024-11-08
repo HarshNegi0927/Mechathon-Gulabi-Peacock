@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { CreditCard, PieChart, TrendingUp, Shield, ChevronRight, Camera, Check } from 'lucide-react'
-
+import { useNavigate } from "react-router-dom";
 const FeatureCard = ({ icon, title, description }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">

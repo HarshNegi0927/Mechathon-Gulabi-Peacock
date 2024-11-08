@@ -12,10 +12,12 @@ import Report from './components/Report.jsx'
 import Expense from './components/Expense.jsx'
 import Footer from './components/Footer.jsx'
 import LandingPage from './components/EntryPage.jsx'
+import LoginPage from './components/login.jsx'
 const router = createBrowserRouter(
   createRoutesFromElements(
 <>
       <Route path="/" element={<LandingPage />} />
+      <Route path='/login' element = {<LoginPage/>}/>
       <Route path="dashboard" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="expense" element={<Expense />} />

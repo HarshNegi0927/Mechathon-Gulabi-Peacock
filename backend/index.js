@@ -62,10 +62,10 @@ app.use('/api/user', require('./routes/imageRoutes'));
 
 // ✅ Serve frontend from "frontend/dist"
 const __dirnameGlobal = path.resolve();
-app.use(express.static(path.join(__dirnameGlobal, './frontend/dict')));
+app.use(express.static(path.join(__dirnameGlobal, '../frontend/dict')));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirnameGlobal, './frontend/dict/index.html'));
+  res.sendFile(path.join(__dirnameGlobal, '../frontend/dict/index.html'));
 });
 
 // ✅ Error handling

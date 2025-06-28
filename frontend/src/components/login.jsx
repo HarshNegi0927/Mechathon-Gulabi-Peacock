@@ -55,7 +55,7 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        'http://localhost:3001/auth/login',
+        '/auth/login',
         { email, password },
         { withCredentials: true }
       );
@@ -75,7 +75,7 @@ const LoginPage = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.open('http://localhost:3001/auth/google', '_self');
+    window.open('/auth/google', '_self');
   };
 
   const handleRegister = () => {

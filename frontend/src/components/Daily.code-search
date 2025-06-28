@@ -1,0 +1,9 @@
+# Query: Daily
+# ContextLines: 1
+
+1 result - 1 file
+
+frontend\src\components\Expense.jsx:
+  17    const [totalAmount, setTotalAmount] = useState(0)
+  18:   const [filter, setFilter] = useState('daily')
+  19    const [error, setError] = useState(null)

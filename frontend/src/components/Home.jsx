@@ -30,7 +30,7 @@ const FinancialDashboard = () => {
 
   const fetchBudgets = async () => {
     try {
-      const response = await fetch('https://mechathon-gulabi-peacock-8.onrender.com/api/budget/report/aggregate', {
+      const response = await fetch('https://mechathon-gulabi-peacock-9.onrender.com/api/budget/report/aggregate', {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch budgets');

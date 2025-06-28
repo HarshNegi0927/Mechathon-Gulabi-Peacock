@@ -95,7 +95,7 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     try {
-      const response = await axios.post('https://mechathon-gulabi-peacock-8.onrender.com/auth/register', { username, email, password });
+      const response = await axios.post('https://mechathon-gulabi-peacock-9.onrender.com/auth/register', { username, email, password });
       if (response.data === "Registered successfully!") {
         toast.success("Registered successfully! Redirecting to login...", { position: "top-center" });
         setIsExiting(true);

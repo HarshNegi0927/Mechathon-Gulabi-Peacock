@@ -54,9 +54,12 @@ app.use('/api/budget', require('./routes/budgetRoutes'));
 app.use('/api/budget', require('./routes/expenseRoutes'));
 app.use('/api/user', require('./routes/imageRoutes'));
 
-// ✅ Root route for Render
-app.get('/', (req, res) => {
-  res.send('🎉 Backend is live and running on Render!');
+// 🌐 Serve frontend (from /dist folder)
+const __dirnameGlobal = path.resolve();
+app.use(express.static(path.join(__dirnameGlobal, 'dict')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirnameGlobal, 'dict', 'index.html'));
 });
 
 // ⚠️ Error Handling

@@ -117,10 +117,10 @@ app.use('/api/user', require('./routes/imageRoutes'));
 
 // 🌐 Serve Frontend (after all APIs)
 const __dirnameGlobal = path.resolve();
-app.use(express.static(path.join(__dirnameGlobal, '../frontend/dist')));
+app.use(express.static(path.join(__dirnameGlobal, '../frontend/dict')));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirnameGlobal, '../frontend/dist/index.html'));
+  res.sendFile(path.join(__dirnameGlobal, '../frontend/dict/index.html'));
 });
 
 // ⚠️ Error Handling

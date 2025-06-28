@@ -24,7 +24,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// 💾 Session config
+// 💾 Session Configuration
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your_secret_key',
   resave: false,
@@ -36,16 +36,16 @@ app.use(session({
   cookie: {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   }
 }));
 
-// 🔐 Passport auth
+// 🔐 Passport Initialization
 app.use(passport.initialize());
 app.use(passport.session());
 
-// 📁 Serve static files like uploaded images
+// 📁 Static File Serving (uploads, images)
 app.use('/uploads', express.static('uploads'));
 
 // 📦 API Routes
@@ -54,23 +54,22 @@ app.use('/api/budget', require('./routes/budgetRoutes'));
 app.use('/api/budget', require('./routes/expenseRoutes'));
 app.use('/api/user', require('./routes/imageRoutes'));
 
-// 🌐 Serve frontend from ../frontend/dist
-const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
-app.use(express.static(frontendPath));
+// 🌐 Serve Frontend (Vite build output from ../frontend/dist)
+app.use(express.static('../frontend/dist'));
 
-// 🎯 Catch-all to support React Router
+// 🎯 Catch-all to support React Router routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+  res.sendFile(path.resolve(__dirname, '../frontend/dist/index.html'));
 });
 
-// ⚠️ Error Handling
+// ⚠️ Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: err.message || 'Something went wrong!' });
 });
 
-// 🚀 Start server
+// 🚀 Start Server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });

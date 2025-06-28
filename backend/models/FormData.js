@@ -3,7 +3,7 @@ const validator = require("validator");
 const jwt = require("jsonwebtoken")
 const SECRET_KEY = process.env.SECRET_KEY
 const FormDataSchema = new mongoose.Schema({
-    name: { type: String, required: true },
+    username: { type: String, required: true },
     email: {
         type: String,
         required: true,
@@ -15,6 +15,10 @@ const FormDataSchema = new mongoose.Schema({
         }
     },
     password: { type: String, },
+    phone:{type:Number},
+    address:{
+        type:String
+    },
     tokens: [
         {
             token: {
@@ -22,7 +26,11 @@ const FormDataSchema = new mongoose.Schema({
                 required: true,
             }
         }
-    ]
+    ],
+    profilePicture: {
+        type: String, 
+        default: null,
+      },
 
 });
 FormDataSchema.methods.generateAuthtoken = async function(req,res){

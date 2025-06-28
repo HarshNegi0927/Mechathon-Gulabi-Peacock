@@ -18,10 +18,14 @@ connectDB();
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ CORS
+// ✅ CORS - Updated for separate frontend deployment
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL, // must be set correctly in your .env
+    origin: [
+      'http://localhost:3000',  // Local development
+      'http://localhost:5173',  // Vite dev server
+      process.env.FRONTEND_URL  // Production frontend URL (will be Vercel)
+    ].filter(Boolean), // Remove any undefined values
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -40,7 +44,7 @@ app.use(
     }),
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // true on Render
+      secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
@@ -54,28 +58,50 @@ app.use(passport.session());
 // ✅ Uploads folder (if you store images or files)
 app.use('/uploads', express.static('uploads'));
 
-// ✅ Routes
+// ✅ API Health Check - NEW
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Expense Tracker API is running!', 
+    status: 'success',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// ✅ API Routes
 app.use('/auth', require('./routes/authRoutes'));
 app.use('/api/budget', require('./routes/budgetRoutes'));
 app.use('/api/budget', require('./routes/expenseRoutes'));
 app.use('/api/user', require('./routes/imageRoutes'));
 
-// ✅ Serve frontend from "frontend/dist"
-const __dirnameGlobal = path.resolve();
-app.use(express.static(path.join(__dirnameGlobal, '../frontend/dict')));
+// ✅ Handle 404 for API endpoints
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ 
+    message: 'API endpoint not found',
+    path: req.originalUrl
+  });
+});
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirnameGlobal, '../frontend/dict/index.html'));
+app.use('/auth/*', (req, res) => {
+  res.status(404).json({ 
+    message: 'Auth endpoint not found',
+    path: req.originalUrl
+  });
 });
 
 // ✅ Error handling
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: err.message || 'Something went wrong!' });
+  console.error('Error:', err.stack);
+  res.status(500).json({ 
+    message: err.message || 'Something went wrong!',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 });
 
 // ✅ Start server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`✅ Backend API running on port ${PORT}`);
+  console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`✅ Frontend URL: ${process.env.FRONTEND_URL || 'Not set'}`);
 });

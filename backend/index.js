@@ -54,12 +54,13 @@ app.use('/api/budget', require('./routes/budgetRoutes'));
 app.use('/api/budget', require('./routes/expenseRoutes'));
 app.use('/api/user', require('./routes/imageRoutes'));
 
-// 🌐 Serve frontend (from /dist folder)
-const __dirnameGlobal = path.resolve();
-app.use(express.static(path.join(__dirnameGlobal, 'dict')));
+// 🌐 Serve frontend from ../frontend/dist
+const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
+app.use(express.static(frontendPath));
 
+// 🎯 Catch-all to support React Router
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirnameGlobal, 'dict', 'index.html'));
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // ⚠️ Error Handling

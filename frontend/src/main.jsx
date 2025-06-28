@@ -4,16 +4,18 @@ import App from './App.jsx'
 import './index.css'
 import { Route, RouterProvider, Routes, createBrowserRouter, createRoutesFromElements } from 'react-router-dom'
 import Layout from './components/Layout.jsx'
-import Header from './components/Header.jsx'
+// import Header from './components/Header.jsx'
 import Home from './components/Home.jsx'
 import User from './components/User.jsx'
 import Budget from './components/Budget.jsx'
 import Report from './components/Report.jsx'
 import Expense from './components/Expense.jsx'
 import Footer from './components/Footer.jsx'
-import LandingPage from './components/EntryPage.jsx'
+// import LandingPage from './components/EntryPage.jsx'
+import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './components/login.jsx'
 import RegisterPage from './components/Register.jsx'
+
 const router = createBrowserRouter(
   createRoutesFromElements(
 <>

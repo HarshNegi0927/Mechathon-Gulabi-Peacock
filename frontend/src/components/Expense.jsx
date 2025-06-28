@@ -27,7 +27,7 @@ export default function ExpenseTracker() {
 
   const fetchBudgets = useCallback(async () => {
     try {
-      const response = await axios.get('http://localhost:3001/api/budget', {
+      const response = await axios.get('https://mechathon-gulabi-peacock-8.onrender.com/api/budget', {
         withCredentials: true,
       });
       if (response.status === 200) {
@@ -44,7 +44,7 @@ export default function ExpenseTracker() {
     if (!budgetId) return;
     
     try {
-      const response = await axios.get(`http://localhost:3001/api/budget/expenses/${budgetId}`, {
+      const response = await axios.get(`https://mechathon-gulabi-peacock-8.onrender.com/api/budget/expenses/${budgetId}`, {
         withCredentials: true,
       });
       if (response.status === 200) {
@@ -71,7 +71,7 @@ export default function ExpenseTracker() {
 
 const updateCategorySpent  = useCallback(async (budgetId,categoryName,amount) =>{
   try {
-    const response = await axios.put('http://localhost:3001/api/budget//category/spent',{
+    const response = await axios.put('https://mechathon-gulabi-peacock-8.onrender.com/api/budget//category/spent',{
       categoryName, amount, date:expense.date,budgetId:budgetId
     },{
       withCredentials:true,
@@ -94,7 +94,7 @@ useEffect(() => {
     }
   
     try {
-      const response = await axios.post('http://localhost:3001/api/budget/addExpenses', {
+      const response = await axios.post('https://mechathon-gulabi-peacock-8.onrender.com/api/budget/addExpenses', {
         description: expense.description,
         amount: expense.amount,
         category: expense.category,

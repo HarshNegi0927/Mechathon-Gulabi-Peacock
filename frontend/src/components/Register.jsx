@@ -95,7 +95,7 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     try {
-      const response = await axios.post('http://localhost:3001/auth/register', { username, email, password });
+      const response = await axios.post('/auth/register', { username, email, password });
       if (response.data === "Registered successfully!") {
         toast.success("Registered successfully! Redirecting to login...", { position: "top-center" });
         setIsExiting(true);

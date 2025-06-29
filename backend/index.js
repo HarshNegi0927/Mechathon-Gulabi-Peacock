@@ -15,6 +15,11 @@ const app = express();
 // 🔌 Connect to MongoDB
 connectDB();
 
+// ⚙️ Trust proxy for production (IMPORTANT!)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // 🧩 Middleware
 app.use(express.json());
 app.use(cookieParser());
@@ -26,20 +31,22 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// 💾 Session Configuration
+// 💾 Session Configuration (FIXED)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your_secret_key',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
-    collectionName: 'sessions'
+    collectionName: 'sessions',
+    touchAfter: 24 * 3600 // lazy session update
   }),
   cookie: {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000, // 1 day
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    // FIXED: Use 'lax' for same-site requests in production
+    sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax'
   }
 }));
 
@@ -50,48 +57,44 @@ app.use(passport.session());
 // 📁 Static File Serving
 app.use('/uploads', express.static('uploads'));
 
-// 🔍 Debug Middleware (temporary - for debugging)
+// 🔍 Enhanced Debug Middleware
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`, {
     authenticated: req.isAuthenticated(),
     user: req.user?.id || 'none',
-    sessionID: req.sessionID
+    sessionID: req.sessionID,
+    hasJWTCookie: !!req.cookies.token,
+    sessionExists: !!req.session,
+    sessionPassport: req.session?.passport
   });
   next();
 });
 
-// 🔒 JWT Authentication Middleware
+// 🔒 SIMPLIFIED Authentication Middleware (Choose ONE approach)
 const authMiddleware = (req, res, next) => {
   console.log('Auth check for:', req.path);
-  console.log('Cookies received:', req.cookies);
   
-  // First check if Passport authenticated (for session-based auth)
+  // OPTION 1: Session-based auth (RECOMMENDED)
   if (req.isAuthenticated()) {
     console.log('Authenticated via Passport session');
     return next();
   }
   
-  // Then check for JWT token in cookies
+  // OPTION 2: JWT fallback (for API clients that can't use sessions)
   const token = req.cookies.token;
-  console.log('JWT token found:', token ? 'Yes' : 'No');
-  
   if (token) {
     try {
-      const jwtSecret = process.env.JWT_SECRET || 'your_jwt_secret';
-      console.log('Using JWT secret:', jwtSecret ? 'Set' : 'Not set');
-      
-      const decoded = jwt.verify(token, jwtSecret);
-      req.user = decoded; // Set user from JWT payload
-      console.log('JWT verification successful. User ID:', decoded.id);
-      console.log('req.user set to:', req.user);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+      // Create a user object that matches what Passport would provide
+      req.user = await FormDataModel.findById(decoded.id);
+      console.log('Authenticated via JWT token, user:', decoded.id);
       return next();
     } catch (error) {
       console.log('JWT verification failed:', error.message);
-      return res.status(401).json({ message: 'Invalid token', error: error.message });
     }
   }
   
-  console.log('No authentication method found');
+  console.log('Authentication failed for:', req.path);
   res.status(401).json({ message: 'Unauthorized - Please log in' });
 };
 
@@ -101,45 +104,48 @@ app.get('/health', (req, res) => {
     status: 'OK', 
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
-    mongoConnected: process.env.MONGODB_URI ? 'URI Set' : 'URI Missing'
+    mongoConnected: process.env.MONGODB_URI ? 'URI Set' : 'URI Missing',
+    trustProxy: app.get('trust proxy')
   });
 });
 
-// 🧪 Test Auth Endpoint (temporary - for debugging)
-app.get('/api/test-auth', authMiddleware, (req, res) => {
-  res.json({
-    success: true,
-    message: 'Authentication successful!',
-    user: req.user,
-    authMethod: req.isAuthenticated() ? 'Passport Session' : 'JWT Token'
-  });
-});
-
-// 🧪 Simple test endpoint without auth
-app.get('/api/test-simple', (req, res) => {
+// 🧪 Enhanced Test Auth Endpoint
+app.get('/api/test-auth', (req, res) => {
   const token = req.cookies.token;
   let jwtDecoded = null;
+  let jwtError = null;
   
   if (token) {
     try {
       jwtDecoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
     } catch (error) {
-      jwtDecoded = { error: error.message };
+      jwtError = error.message;
     }
   }
   
   res.json({
-    hasToken: !!token,
+    authenticated: req.isAuthenticated(),
+    user: req.user || null,
+    sessionID: req.sessionID,
+    session: {
+      exists: !!req.session,
+      passport: req.session?.passport,
+      cookie: req.session?.cookie
+    },
+    cookies: req.cookies,
     jwtDecoded: jwtDecoded,
-    jwtSecret: process.env.JWT_SECRET ? 'Set' : 'Not Set'
+    jwtError: jwtError,
+    jwtSecret: process.env.JWT_SECRET ? 'Set' : 'Not Set',
+    trustProxy: app.get('trust proxy'),
+    headers: {
+      'x-forwarded-proto': req.headers['x-forwarded-proto'],
+      'x-forwarded-for': req.headers['x-forwarded-for']
+    }
   });
 });
 
 // 📦 API Routes
-// Public routes (no auth required)
 app.use('/auth', require('./routes/authRoutes'));
-
-// Protected routes (auth required)
 app.use('/api/budget', authMiddleware, require('./routes/budgetRoutes'));
 app.use('/api/budget', authMiddleware, require('./routes/expenseRoutes'));
 app.use('/api/user', authMiddleware, require('./routes/imageRoutes'));
@@ -153,7 +159,8 @@ app.use((err, req, res, next) => {
     method: req.method,
     body: req.body,
     user: req.user?.id || 'none',
-    authenticated: req.isAuthenticated()
+    authenticated: req.isAuthenticated(),
+    session: !!req.session
   });
   
   res.status(err.status || 500).json({ 
@@ -177,6 +184,7 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`Trust Proxy: ${app.get('trust proxy')}`);
   console.log(`MongoDB URI: ${process.env.MONGODB_URI ? 'Set' : 'Not Set'}`);
   console.log(`Session Secret: ${process.env.SESSION_SECRET ? 'Set' : 'Not Set'}`);
 });

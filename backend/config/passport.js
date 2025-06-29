@@ -18,16 +18,13 @@ passport.use(
             if (!user) {
                 return done(null, false, { message: 'No records found!' });
             }
-
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
                 return done(null, false, { message: 'Wrong password' });
             }
-
-            // console.log(user)
             return done(null, user);
         } catch (error) {
-            console.log("hhasdinh")
+            console.error('Local strategy error:', error);
             return done(error);
         }
     })
@@ -39,7 +36,7 @@ passport.use(
         {
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: 'http://localhost:3001/auth/google/callback',
+            callbackURL: 'https://mechathon-gulabi-peacock-10.onrender.com/auth/google/callback',
         },
         async (accessToken, refreshToken, profile, done) => {
             try {
@@ -47,13 +44,21 @@ passport.use(
                 if (!user) {
                     user = await FormDataModel.create({
                         googleId: profile.id,
-                        name: profile.displayName,
+                        username: profile.displayName,
                         email: profile.emails[0].value,
+                        profilePicture: profile.photos[0]?.value || '/placeholder.svg'
                     });
+                } else {
+                    // Update existing user with googleId if not present
+                    if (!user.googleId) {
+                        user.googleId = profile.id;
+                        user.profilePicture = user.profilePicture || profile.photos[0]?.value || '/placeholder.svg';
+                        await user.save();
+                    }
                 }
-
                 return done(null, user);
             } catch (error) {
+                console.error('Google strategy error:', error);
                 return done(error);
             }
         }
@@ -71,6 +76,9 @@ passport.deserializeUser(async (id, done) => {
         const user = await FormDataModel.findById(id);
         done(null, user);
     } catch (error) {
+        console.error('Deserialize user error:', error);
         done(error, null);
     }
 });
+
+module.exports = passport;

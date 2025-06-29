@@ -55,12 +55,7 @@ app.use('/api/budget', require('./routes/expenseRoutes'));
 app.use('/api/user', require('./routes/imageRoutes'));
 
 // 🌐 Serve Frontend (Vite build output from ../frontend/dist)
-app.use(express.static('../frontend/dist'));
 
-// 🎯 Catch-all to support React Router routes
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../frontend/dist/index.html'));
-});
 
 // ⚠️ Error Handler
 app.use((err, req, res, next) => {
@@ -69,7 +64,7 @@ app.use((err, req, res, next) => {
 });
 
 // 🚀 Start Server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });

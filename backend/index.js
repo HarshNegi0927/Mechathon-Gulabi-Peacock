@@ -5,6 +5,7 @@ const passport = require('passport');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const MongoStore = require('connect-mongo');
+const jwt = require('jsonwebtoken');
 const path = require('path');
 const connectDB = require('./config/db');
 require('./config/passport');
@@ -100,11 +101,26 @@ app.get('/health', (req, res) => {
 
 // 🧪 Test Auth Endpoint (temporary - for debugging)
 app.get('/api/test-auth', (req, res) => {
+  const token = req.cookies.token;
+  let jwtDecoded = null;
+  let jwtError = null;
+  
+  if (token) {
+    try {
+      jwtDecoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+    } catch (error) {
+      jwtError = error.message;
+    }
+  }
+  
   res.json({
     authenticated: req.isAuthenticated(),
     user: req.user || null,
     sessionID: req.sessionID,
-    cookies: req.cookies
+    cookies: req.cookies,
+    jwtDecoded: jwtDecoded,
+    jwtError: jwtError,
+    jwtSecret: process.env.JWT_SECRET ? 'Set' : 'Not Set'
   });
 });
 

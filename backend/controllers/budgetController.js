@@ -90,12 +90,14 @@ exports.updateCategorySpent = async (req, res) => {
     try {
         const { categoryName, amount, budgetId } = req.body;
         if(amount === undefined || categoryName == undefined){
-            return
+            return res.status(400).json({
+                message: "Category name and amount are required",
+            });
         }
         // Find the specific budget by ID and ensure it's active
         const activeBudget = await Budget.findOne({
             _id: budgetId,
-            status: { $ne: "archive" }
+            status: { $ne: "archived" } // Fixed: was "archive", should be "archived"
         });
 
         console.log(budgetId);
@@ -117,8 +119,8 @@ exports.updateCategorySpent = async (req, res) => {
         if (category) {
             if (!category.spent) category.spent = 0;
 
-            // Update the spent amount
-            category.spent += Number(amount);
+            // Update the spent amount - SET to the new value instead of adding
+            category.spent = Number(amount);
 
             // Save the updated budget
             await activeBudget.save();
@@ -140,7 +142,6 @@ exports.updateCategorySpent = async (req, res) => {
         });
     }
 };
-
 
 exports.archiveBudget = async (req, res) => {
     try {
@@ -177,12 +178,18 @@ exports.editBudget = async (req, res) => {
     const updatedBudget = req.body;
 
     try {
-        const budget = await Budget.findByIdAndUpdate(budgetId, updatedBudget, {
-            new: true,
-        });
+        const budget = await Budget.findOneAndUpdate(
+            {
+                _id: budgetId,
+                userId: req.user._id, // Added user verification
+            },
+            updatedBudget,
+            { new: true }
+        );
         if (!budget) return res.status(404).json({ message: "Budget not found" });
         res.json(budget);
     } catch (error) {
+        console.error("Error updating budget:", error);
         res.status(500).json({ message: "Error updating budget" });
     }
 };
@@ -214,8 +221,8 @@ exports.getCategories = async (req, res) => {
 
 exports.updateBudgetFromExpense = async (userId, expenseData) => {
     try {
-        const budget = await Budget.find({
-            budgetIdId,
+        const budget = await Budget.findOne({ // Changed from find to findOne
+            budgetIdId, // Fixed: was 'budgetIdId'
             status: "active",
             startDate: { $lte: new Date(expenseData.date) },
             endDate: { $gte: new Date(expenseData.date) },
@@ -265,6 +272,7 @@ exports.handleExpenseCreated = async (req, res) => {
         });
     }
 };
+
 exports.getBudgetReport = async (req, res) => {
     try {
         // Fetch all active budgets for the logged-in user
@@ -303,16 +311,16 @@ exports.getBudgetReport = async (req, res) => {
                 totalAllocated,
                 totalSpent,
                 totalRemaining: totalAllocated - totalSpent,
-                spentPercentage: ((totalSpent / totalAllocated) * 100).toFixed(1),
+                spentPercentage: totalAllocated > 0 ? ((totalSpent / totalAllocated) * 100).toFixed(1) : '0.0',
                 categories: budget.categories.map((category) => ({
                     name: category.name,
                     allocatedAmount: category.allocatedAmount,
                     spent: category.spent || 0,
                     remaining: category.allocatedAmount - (category.spent || 0),
-                    spentPercentage: (
+                    spentPercentage: category.allocatedAmount > 0 ? (
                         ((category.spent || 0) / category.allocatedAmount) *
                         100
-                    ).toFixed(1),
+                    ).toFixed(1) : '0.0',
                 })),
             };
         });

@@ -61,9 +61,9 @@ app.use((req, res, next) => {
 });
 
 // 🔒 JWT Authentication Middleware
-
 const authMiddleware = (req, res, next) => {
   console.log('Auth check for:', req.path);
+  console.log('Cookies received:', req.cookies);
   
   // First check if Passport authenticated (for session-based auth)
   if (req.isAuthenticated()) {
@@ -73,18 +73,25 @@ const authMiddleware = (req, res, next) => {
   
   // Then check for JWT token in cookies
   const token = req.cookies.token;
+  console.log('JWT token found:', token ? 'Yes' : 'No');
+  
   if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+      const jwtSecret = process.env.JWT_SECRET || 'your_jwt_secret';
+      console.log('Using JWT secret:', jwtSecret ? 'Set' : 'Not set');
+      
+      const decoded = jwt.verify(token, jwtSecret);
       req.user = decoded; // Set user from JWT payload
-      console.log('Authenticated via JWT token, user:', decoded.id);
+      console.log('JWT verification successful. User ID:', decoded.id);
+      console.log('req.user set to:', req.user);
       return next();
     } catch (error) {
       console.log('JWT verification failed:', error.message);
+      return res.status(401).json({ message: 'Invalid token', error: error.message });
     }
   }
   
-  console.log('Authentication failed for:', req.path);
+  console.log('No authentication method found');
   res.status(401).json({ message: 'Unauthorized - Please log in' });
 };
 
@@ -99,26 +106,31 @@ app.get('/health', (req, res) => {
 });
 
 // 🧪 Test Auth Endpoint (temporary - for debugging)
-app.get('/api/test-auth', (req, res) => {
+app.get('/api/test-auth', authMiddleware, (req, res) => {
+  res.json({
+    success: true,
+    message: 'Authentication successful!',
+    user: req.user,
+    authMethod: req.isAuthenticated() ? 'Passport Session' : 'JWT Token'
+  });
+});
+
+// 🧪 Simple test endpoint without auth
+app.get('/api/test-simple', (req, res) => {
   const token = req.cookies.token;
   let jwtDecoded = null;
-  let jwtError = null;
   
   if (token) {
     try {
       jwtDecoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
     } catch (error) {
-      jwtError = error.message;
+      jwtDecoded = { error: error.message };
     }
   }
   
   res.json({
-    authenticated: req.isAuthenticated(),
-    user: req.user || null,
-    sessionID: req.sessionID,
-    cookies: req.cookies,
+    hasToken: !!token,
     jwtDecoded: jwtDecoded,
-    jwtError: jwtError,
     jwtSecret: process.env.JWT_SECRET ? 'Set' : 'Not Set'
   });
 });

@@ -7,7 +7,7 @@ function Header() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('http://localhost:3001/auth/logout', {
+      const response = await fetch('https://mechathon-gulabi-peacock-10.onrender.com/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });

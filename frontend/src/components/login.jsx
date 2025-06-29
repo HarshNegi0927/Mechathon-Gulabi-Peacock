@@ -60,7 +60,7 @@ const LoginPage = () => {
         { withCredentials: true }
       );
       console.log(response);
-      if (response.data === "Login successful") {
+      if (response.data && response.data.message === "Login successful") {
         showNotification('Welcome to TakeTracker!', 'success');
         setTimeout(() => {
           window.location.href = 'https://tick-tracker.onrender.com/dashboard';

@@ -62,43 +62,76 @@ exports.registerUser = async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      profilePicture: '/placeholder.svg' // Default profile picture
+      profilePicture: '/placeholder.svg'
     });
 
+    // FIXED: Use session-based auth primarily
     req.login(newUser, (err) => {
-      if (err) return res.status(500).json(err);
+      if (err) {
+        console.error('Login error after registration:', err);
+        return res.status(500).json({ message: 'Registration successful but login failed' });
+      }
       
+      // Optional: Still create JWT for API clients
       const token = createToken(newUser);
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax',
         maxAge: 24 * 60 * 60 * 1000,
       });
       
+      console.log('Registration successful, user logged in:', newUser._id);
       res.json("Registered successfully!");
     });
   } catch (error) {
     console.error("Registration error:", error);
-    return res.status(500).json(error);
+    return res.status(500).json({ message: 'Registration failed', error: error.message });
   }
 };
 
 exports.loginUser = (req, res, next) => {
+  console.log('Login attempt for:', req.body.email);
+  
   passport.authenticate('local', (err, user, info) => {
-    if (err) return next(err);
-    if (!user) return res.json(info.message);
+    if (err) {
+      console.error('Passport authentication error:', err);
+      return next(err);
+    }
+    
+    if (!user) {
+      console.log('Authentication failed:', info?.message);
+      return res.status(401).json({ message: info?.message || 'Authentication failed' });
+    }
 
+    // FIXED: Ensure session login works properly
     req.login(user, (err) => {
-      if (err) return next(err);
+      if (err) {
+        console.error('Session login error:', err);
+        return next(err);
+      }
       
+      // Create JWT as backup/for API clients
       const token = createToken(user);
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax',
         maxAge: 24 * 60 * 60 * 1000,
       });
       
-      return res.json("Login successful");
+      console.log('Login successful for user:', user._id);
+      console.log('Session ID:', req.sessionID);
+      console.log('Session:', req.session);
+      
+      return res.json({ 
+        message: "Login successful",
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email
+        }
+      });
     });
   })(req, res, next);
 };
@@ -108,15 +141,35 @@ exports.googleLogin = passport.authenticate('google', {
 });
 
 exports.googleCallback = (req, res) => {
-  passport.authenticate('google', { failureRedirect: '/login' })(req, res, () => {
-    const token = createToken(req.user);
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000,
+  passport.authenticate('google', (err, user, info) => {
+    if (err) {
+      console.error('Google auth error:', err);
+      return res.redirect('https://tick-tracker.onrender.com/login?error=auth_failed');
+    }
+    
+    if (!user) {
+      console.log('Google auth failed:', info);
+      return res.redirect('https://tick-tracker.onrender.com/login?error=auth_failed');
+    }
+    
+    req.login(user, (err) => {
+      if (err) {
+        console.error('Google login session error:', err);
+        return res.redirect('https://tick-tracker.onrender.com/login?error=session_failed');
+      }
+      
+      const token = createToken(user);
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+      
+      console.log('Google login successful for user:', user._id);
+      res.redirect('https://tick-tracker.onrender.com/dashboard');
     });
-    res.redirect('https://tick-tracker.onrender.com/dashboard');
-  });
+  })(req, res);
 };
 
 exports.getUserProfile = async (req, res) => {
@@ -127,8 +180,14 @@ exports.getUserProfile = async (req, res) => {
 
     const user = await FormDataModel.findById(req.user._id)
       .select('-password -tokens');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
     res.json(user);
   } catch (error) {
+    console.error('Get profile error:', error);
     res.status(500).json({ message: 'Error fetching user profile' });
   }
 };
@@ -148,15 +207,17 @@ exports.updateProfile = async (req, res) => {
 
     // Handle profile picture update if present
     if (req.file) {
-        updates.profilePicture = `http://localhost:${process.env.PORT}/uploads/${req.file.filename}`;
-
+      updates.profilePicture = `https://mechathon-gulabi-peacock-10.onrender.com/uploads/${req.file.filename}`;
       
       // Delete old profile picture if it exists and isn't the default
       const oldUser = await FormDataModel.findById(req.user._id);
       if (oldUser.profilePicture && 
           oldUser.profilePicture !== '/placeholder.svg' &&
-          fs.existsSync(`.${oldUser.profilePicture}`)) {
-        fs.unlinkSync(`.${oldUser.profilePicture}`);
+          !oldUser.profilePicture.includes('placeholder')) {
+        const oldFilePath = path.join(uploadDir, path.basename(oldUser.profilePicture));
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
       }
     }
 
@@ -173,15 +234,37 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
+// FIXED: Better logout handling
 exports.logoutUser = (req, res) => {
-  res.clearCookie('token');
+  console.log('Logout request for user:', req.user?.id);
+  
+  // Clear JWT cookie
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax'
+  });
+  
+  // Clear session
   req.logout((err) => {
-    if (err) return res.status(500).json(err);
-    res.json({ message: "Logged out successfully" });
+    if (err) {
+      console.error('Logout error:', err);
+      return res.status(500).json({ message: 'Logout failed' });
+    }
+    
+    // Destroy session completely
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destroy error:', err);
+        return res.status(500).json({ message: 'Session cleanup failed' });
+      }
+      
+      console.log('Logout successful');
+      res.json({ message: "Logged out successfully" });
+    });
   });
 };
 
-// New method for handling profile picture updates
 exports.updateProfilePicture = async (req, res) => {
   try {
     if (!req.user) {
@@ -192,14 +275,17 @@ exports.updateProfilePicture = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const profilePicturePath = `/uploads/profile-pictures/${req.file.filename}`;
+    const profilePicturePath = `https://mechathon-gulabi-peacock-10.onrender.com/uploads/${req.file.filename}`;
     
     // Delete old profile picture if it exists and isn't the default
     const oldUser = await FormDataModel.findById(req.user._id);
     if (oldUser.profilePicture && 
         oldUser.profilePicture !== '/placeholder.svg' &&
-        fs.existsSync(`.${oldUser.profilePicture}`)) {
-      fs.unlinkSync(`.${oldUser.profilePicture}`);
+        !oldUser.profilePicture.includes('placeholder')) {
+      const oldFilePath = path.join(uploadDir, path.basename(oldUser.profilePicture));
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
     }
 
     const user = await FormDataModel.findByIdAndUpdate(
@@ -217,8 +303,16 @@ exports.updateProfilePicture = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
     const { oldPassword, newPassword } = req.body;
     const user = await FormDataModel.findById(req.user._id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
@@ -229,22 +323,9 @@ exports.changePassword = async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    // Send confirmation email
-    const transporter = nodemailer.createTransport({
-      // Configure your email service here
-    });
-
-    await transporter.sendMail({
-      from: 'your-email@example.com',
-      to: user.email,
-      subject: 'Password Changed',
-      text: 'Your password has been successfully changed.'
-    });
-
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
     console.error('Change password error:', error);
     res.status(500).json({ message: 'Error changing password' });
   }
 };
-

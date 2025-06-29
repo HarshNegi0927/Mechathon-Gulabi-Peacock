@@ -28,7 +28,7 @@ const BudgetReport = () => {
 
   const fetchBudgets = async () => {
     try {
-      const response = await fetch('https://mechathon-gulabi-peacock-9.onrender.com/api/budget/report/aggregate', {
+      const response = await fetch('https://mechathon-gulabi-peacock-10.onrender.com/api/budget/report/aggregate', {
         credentials: 'include',
       });
       

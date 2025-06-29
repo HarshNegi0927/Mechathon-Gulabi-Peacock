@@ -55,7 +55,7 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        'https://mechathon-gulabi-peacock-9.onrender.com/auth/login',
+        'https://mechathon-gulabi-peacock-10.onrender.com/auth/login',
         { email, password },
         { withCredentials: true }
       );
@@ -75,7 +75,7 @@ const LoginPage = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.open('https://mechathon-gulabi-peacock-9.onrender.com/auth/google', '_self');
+    window.open('https://mechathon-gulabi-peacock-10.onrender.com/auth/google', '_self');
   };
 
   const handleRegister = () => {

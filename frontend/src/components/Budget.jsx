@@ -26,7 +26,7 @@ export default function BudgetDashboard() {
 
   const fetchBudgets = async () => {
     try {
-      const response = await fetch('https://mechathon-gulabi-peacock-9.onrender.com/api/budget', {
+      const response = await fetch('https://mechathon-gulabi-peacock-10.onrender.com/api/budget', {
         credentials: 'include'
       })
       if (!response.ok) throw new Error('Failed to fetch budgets')
@@ -40,7 +40,7 @@ export default function BudgetDashboard() {
   const handleCreateBudget = async (e) => {
     e.preventDefault()
     try {
-      const response = await fetch('https://mechathon-gulabi-peacock-9.onrender.com/api/budget/create', {
+      const response = await fetch('https://mechathon-gulabi-peacock-10.onrender.com/api/budget/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -67,7 +67,7 @@ export default function BudgetDashboard() {
 
   const handleUpdateSpent = async (budgetId, categoryName, spent) => {
     try {
-      const response = await fetch('https://mechathon-gulabi-peacock-9.onrender.com/api/budget/category/spent', {
+      const response = await fetch('https://mechathon-gulabi-peacock-10.onrender.com/api/budget/category/spent', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -85,7 +85,7 @@ export default function BudgetDashboard() {
 
   const handleArchiveBudget = async (budgetId) => {
     try {
-      const response = await fetch(`https://mechathon-gulabi-peacock-9.onrender.com/budget/archive/${budgetId}`, {
+      const response = await fetch(`https://mechathon-gulabi-peacock-10.onrender.com/budget/archive/${budgetId}`, {
         method: 'PUT',
         credentials: 'include'
       })
@@ -106,7 +106,7 @@ export default function BudgetDashboard() {
   const handleUpdateBudget = async (e) => {
     e.preventDefault()
     try {
-      const response = await fetch(`https://mechathon-gulabi-peacock-9.onrender.com/api/budget/edit/${editBudgetId}`, {
+      const response = await fetch(`https://mechathon-gulabi-peacock-10.onrender.com/api/budget/edit/${editBudgetId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

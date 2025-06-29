@@ -21,7 +21,7 @@ function User() {
 
   const checkAuthentication = async () => {
     try {
-      const response = await fetch('https://mechathon-gulabi-peacock-9.onrender.com/auth/check', {
+      const response = await fetch('https://mechathon-gulabi-peacock-10.onrender.com/auth/check', {
         credentials: 'include'
       });
       if (!response.ok) {
@@ -37,7 +37,7 @@ function User() {
 
   const fetchUserData = async () => {
     try {
-      const response = await fetch('https://mechathon-gulabi-peacock-9.onrender.com/auth/user', {
+      const response = await fetch('https://mechathon-gulabi-peacock-10.onrender.com/auth/user', {
         credentials: 'include'
       });
       if (response.ok) {
@@ -70,7 +70,7 @@ function User() {
         formData.append('profilePicture', newProfilePicture);
       }
       
-      const response = await fetch('https://mechathon-gulabi-peacock-9.onrender.com/auth/update-profile', {
+      const response = await fetch('https://mechathon-gulabi-peacock-10.onrender.com/auth/update-profile', {
         method: 'PUT',
         credentials: 'include',
         body: formData,
@@ -99,7 +99,7 @@ function User() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('https://mechathon-gulabi-peacock-9.onrender.com/auth/logout', {
+      const response = await fetch('https://mechathon-gulabi-peacock-10.onrender.com/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });

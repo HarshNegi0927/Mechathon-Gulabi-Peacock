@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const connectDB = require('./config/db');
 require('./config/passport');
-const FormDataModel = require('./models/FormDataModel'); // Ensure this is imported
+const FormDataModel = require('./models/FormData'); // Ensure this is imported
 
 const app = express();
 

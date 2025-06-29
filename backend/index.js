@@ -59,12 +59,31 @@ app.use((req, res, next) => {
   next();
 });
 
-// 🔒 Authentication Middleware
+// 🔒 JWT Authentication Middleware
+const jwt = require('jsonwebtoken');
+
 const authMiddleware = (req, res, next) => {
-  console.log('Auth check for:', req.path, 'Authenticated:', req.isAuthenticated());
+  console.log('Auth check for:', req.path);
+  
+  // First check if Passport authenticated (for session-based auth)
   if (req.isAuthenticated()) {
+    console.log('Authenticated via Passport session');
     return next();
   }
+  
+  // Then check for JWT token in cookies
+  const token = req.cookies.token;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+      req.user = decoded; // Set user from JWT payload
+      console.log('Authenticated via JWT token, user:', decoded.id);
+      return next();
+    } catch (error) {
+      console.log('JWT verification failed:', error.message);
+    }
+  }
+  
   console.log('Authentication failed for:', req.path);
   res.status(401).json({ message: 'Unauthorized - Please log in' });
 };

@@ -115,7 +115,7 @@ exports.googleCallback = (req, res) => {
       secure: process.env.NODE_ENV === 'production',
       maxAge: 24 * 60 * 60 * 1000,
     });
-    res.redirect('http://localhost:5173/dashboard');
+    res.redirect('https://tick-tracker.onrender.com/dashboard');
   });
 };
 

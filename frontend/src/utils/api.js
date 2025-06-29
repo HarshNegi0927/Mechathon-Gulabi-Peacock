@@ -1,7 +1,7 @@
 // src/utils/api.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3001/api/budget'; // Adjust this to match your backend URL
+const API_BASE_URL = 'https://mechathon-gulabi-peacock-10.onrender.com/api/budget'; // Adjust this to match your backend URL
 
 // Create axios instance with default config
 const api = axios.create({

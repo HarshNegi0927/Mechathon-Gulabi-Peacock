@@ -63,7 +63,7 @@ const LoginPage = () => {
       if (response.data == "Login successful") {
         showNotification('Welcome to TakeTracker!', 'success');
         setTimeout(() => {
-          navigate('https://tick-tracker.onrender.com/dashboard');
+          window.location.href = 'https://tick-tracker.onrender.com/dashboard';
         }, 3000);
       } else {
         showNotification(response.data);

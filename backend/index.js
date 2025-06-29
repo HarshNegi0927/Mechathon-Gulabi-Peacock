@@ -61,7 +61,6 @@ app.use((req, res, next) => {
 });
 
 // 🔒 JWT Authentication Middleware
-const jwt = require('jsonwebtoken');
 
 const authMiddleware = (req, res, next) => {
   console.log('Auth check for:', req.path);

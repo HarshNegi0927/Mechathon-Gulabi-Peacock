@@ -39,16 +39,16 @@ app.use(session({
   saveUninitialized: false,
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
-    collectionName: 'sessions',
-    touchAfter: 24 * 3600 // lazy session update
+    collectionName: 'sessions'
   }),
   cookie: {
+    secure: true,                    // ✅ Important for https (Netlify/Render)
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000, // 1 day
-    sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax'
+    sameSite: 'none',                // ✅ Important for cross-origin
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
+
 
 // 🔐 Passport Initialization
 app.use(passport.initialize());

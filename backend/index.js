@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const connectDB = require('./config/db');
 require('./config/passport');
+const FormDataModel = require('./models/FormDataModel'); // Ensure this is imported
 
 const app = express();
 
@@ -45,7 +46,6 @@ app.use(session({
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000, // 1 day
-    // FIXED: Use 'lax' for same-site requests in production
     sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax'
   }
 }));
@@ -70,22 +70,19 @@ app.use((req, res, next) => {
   next();
 });
 
-// 🔒 SIMPLIFIED Authentication Middleware (Choose ONE approach)
-const authMiddleware = (req, res, next) => {
+// 🔒 SIMPLIFIED Authentication Middleware (FIXED: now async)
+const authMiddleware = async (req, res, next) => {
   console.log('Auth check for:', req.path);
-  
-  // OPTION 1: Session-based auth (RECOMMENDED)
+
   if (req.isAuthenticated()) {
     console.log('Authenticated via Passport session');
     return next();
   }
-  
-  // OPTION 2: JWT fallback (for API clients that can't use sessions)
+
   const token = req.cookies.token;
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
-      // Create a user object that matches what Passport would provide
       req.user = await FormDataModel.findById(decoded.id);
       console.log('Authenticated via JWT token, user:', decoded.id);
       return next();
@@ -93,7 +90,7 @@ const authMiddleware = (req, res, next) => {
       console.log('JWT verification failed:', error.message);
     }
   }
-  
+
   console.log('Authentication failed for:', req.path);
   res.status(401).json({ message: 'Unauthorized - Please log in' });
 };
@@ -114,7 +111,7 @@ app.get('/api/test-auth', (req, res) => {
   const token = req.cookies.token;
   let jwtDecoded = null;
   let jwtError = null;
-  
+
   if (token) {
     try {
       jwtDecoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
@@ -122,7 +119,7 @@ app.get('/api/test-auth', (req, res) => {
       jwtError = error.message;
     }
   }
-  
+
   res.json({
     authenticated: req.isAuthenticated(),
     user: req.user || null,
@@ -162,7 +159,7 @@ app.use((err, req, res, next) => {
     authenticated: req.isAuthenticated(),
     session: !!req.session
   });
-  
+
   res.status(err.status || 500).json({ 
     message: err.message || 'Something went wrong!',
     path: req.path,

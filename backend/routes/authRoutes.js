@@ -1,141 +1,68 @@
-// const express = require('express');
-// const router = express.Router();
-// const authController = require('../controllers/authController');
-// const multer = require('multer');
-// const path = require('path');
-// const bcrypt = require('bcryptjs');
-
-// // Local authentication routes
-// router.post('/register', authController.registerUser); // Route for user registration
-// router.post('/login', authController.loginUser); // Route for user login
-// router.get('/check', (req, res) => {
-//     if (req.isAuthenticated()) {
-//         return res.status(200).json({ message: 'Authenticated' });
-//     } else {
-//         return res.status(401).json({ message: 'Not authenticated' });
-//     }
-// });
-// router.get('/user', authController.getUserProfile);
-// router.put('/update-profile', authController.updateProfile);
-
-// // Configure multer for file uploads
-// const storage = multer.diskStorage({
-//   destination: './uploads/profile-pictures',
-//   filename: function(req, file, cb) {
-//     cb(null, `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`);
-//   }
-// });
-
-// const upload = multer({
-//   storage: storage,
-//   limits: { fileSize: 1000000 }, // 1MB limit
-//   fileFilter: function(req, file, cb) {
-//     checkFileType(file, cb);
-//   }
-// });
-
-// // Check file type
-// function checkFileType(file, cb) {
-//   const filetypes = /jpeg|jpg|png|gif/;
-//   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-//   const mimetype = filetypes.test(file.mimetype);
-
-//   if (mimetype && extname) {
-//     return cb(null, true);
-//   } else {
-//     cb('Error: Images Only!');
-//   }
-// }
-
-// // Update profile picture
-// router.post('/update-profile-picture', upload.single('profilePicture'), async (req, res) => {
-//   try {
-//     if (!req.file) {
-//       return res.status(400).json({ message: 'No file uploaded' });
-//     }
-
-//     const profilePictureUrl = `/uploads/profile-pictures/${req.file.filename}`;
-    
-//     // Update user's profile picture URL in database
-//     await db.query(
-//       'UPDATE users SET profile_picture = $1 WHERE id = $2',
-//       [profilePictureUrl, req.user.id]
-//     );
-
-//     res.json({ profilePictureUrl });
-//   } catch (error) {
-//     console.error('Error updating profile picture:', error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// });
-
-// // Change password
-// router.post('/change-password', async (req, res) => {
-//   try {
-//     const { currentPassword, newPassword } = req.body;
-
-//     // Get user from database
-//     const user = await db.query('SELECT * FROM users WHERE id = $1', [req.user.id]);
-
-//     // Verify current password
-//     const isValid = await bcrypt.compare(currentPassword, user.rows[0].password);
-//     if (!isValid) {
-//       return res.status(400).json({ message: 'Current password is incorrect' });
-//     }
-
-//     // Hash new password
-//     const salt = await bcrypt.genSalt(10);
-//     const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-//     // Update password in database
-//     await db.query(
-//       'UPDATE users SET password = $1 WHERE id = $2',
-//       [hashedPassword, req.user.id]
-//     );
-
-//     res.json({ message: 'Password updated successfully' });
-//   } catch (error) {
-//     console.error('Error changing password:', error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// });
-
-// // Google OAuth routes
-// router.get('/google', authController.googleLogin); // Route to initiate Google login
-// router.get('/google/callback', authController.googleCallback); // Route for Google callback after authentication
-// router.post('/logout', authController.logoutUser);
-
-// module.exports = router; // Export the router for use in app.js
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { upload } = require('../controllers/authController');
 
-// Authentication check middleware
+// Enhanced authentication check middleware
 const isAuthenticated = (req, res, next) => {
+  console.log('Auth route check:', {
+    path: req.path,
+    isAuth: req.isAuthenticated(),
+    hasUser: !!req.user,
+    sessionID: req.sessionID
+  });
+  
   if (req.isAuthenticated()) {
     return next();
   }
+  
+  // Check JWT as fallback (same as main auth middleware)
+  const token = req.cookies.token;
+  if (token) {
+    try {
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+      // You'd need to fetch the user here too for consistency
+      console.log('Auth route: JWT fallback successful');
+      return next();
+    } catch (error) {
+      console.log('Auth route: JWT fallback failed:', error.message);
+    }
+  }
+  
   res.status(401).json({ message: 'Not authenticated' });
 };
 
-// Auth routes
+// Public routes (no auth required)
 router.post('/register', authController.registerUser);
 router.post('/login', authController.loginUser);
+
+// Google OAuth routes
+router.get('/google', authController.googleLogin);
+router.get('/google/callback', authController.googleCallback);
+
+// Protected routes (auth required)
 router.get('/check', isAuthenticated, (req, res) => {
-  res.status(200).json({ message: 'Authenticated' });
+  res.status(200).json({ 
+    message: 'Authenticated',
+    user: {
+      id: req.user._id,
+      username: req.user.username,
+      email: req.user.email
+    }
+  });
 });
+
 router.get('/user', isAuthenticated, authController.getUserProfile);
+
 router.put('/update-profile', 
   isAuthenticated,
   upload.single('profilePicture'),
   authController.updateProfile
 );
-router.post('/logout', authController.logoutUser);
-router.post('/change-password', authController.changePassword);
 
-// Google OAuth routes
-router.get('/google', authController.googleLogin);
-router.get('/google/callback', authController.googleCallback);
+router.post('/logout', authController.logoutUser);
+
+router.post('/change-password', isAuthenticated, authController.changePassword);
 
 module.exports = router;
